@@ -12,15 +12,56 @@
 
 // https://github.com/espressif/esp32-camera
 
-const char* ssid = "esp32-cam";
-const char* password = "***********";
+/* const char* ssid = "ESP32CAM";
+const char* password = "";*/
+const char* ssid = "linksys";
+const char* password = "";
 
 void startCameraServer();
 
+#define  LED        4
+//*****************************************************
+#define  Pul_Imagen  14
+#define  Pul_Sensor    15
+// enciende la sirena o la tiraled
+#define  ActuadorSirena    13
+//*****************************************************
+byte EstadoPul_Imagen = 0;
+byte EstadoPul_Sensor = 0;
+
+void EnviarNotificacion()
+{
+  Serial.println("Notificacion Enviada");
+  //EnviarNotificacionHTTP("El sensor ha sido activado");
+}
+
+void EnviarImagenBlink()
+{
+  digitalWrite(LED, HIGH);
+  delay(200);
+  Serial.println("Enviando Imagen");
+  //EnviarHTTP_imagen "http://"+local_address+"/imagen"); //ESP32 CAM 1
+  digitalWrite(LED, LOW);
+  delay(1000);
+}
+
+void Pul_ImagenPresionado()
+{
+  Serial.println("Pul_Imagen Presionado");
+  EnviarImagenBlink();
+}
+
 void setup() {
   Serial.begin(115200);
+  pinMode(LED,OUTPUT);
+  pinMode(ActuadorSirena,OUTPUT);
+  
+  pinMode(Pul_Imagen,INPUT_PULLUP);
+  pinMode(Pul_Sensor,INPUT_PULLUP);
+  
   Serial.setDebugOutput(true);
   Serial.println();
+  Serial.println("Empezando");
 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -81,16 +122,16 @@ void setup() {
   s->set_hmirror(s, 1);
 #endif
 
-  WiFi.enableSTA(true);
+  /* WiFi.enableSTA(true);
   WiFi.softAPsetHostname("esp32-cam");
   WiFi.softAP(ssid);
   Serial.println("WiFi connected");
 
   startCameraServer();
 
-  Serial.println("Camera Ready! Use 'http://esp32-cam' to connect");
+  Serial.println("Camera Ready! Use 'http://esp32-cam' to connect"); */
 
-  /*
+  
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -105,10 +146,22 @@ void setup() {
   Serial.print("Camera Ready! Use 'http://");
   Serial.print(WiFi.localIP());
   Serial.println("' to connect");
-  */
+ 
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+  EstadoPul_Imagen = digitalRead(Pul_Imagen);
+  EstadoPul_Sensor = digitalRead(Pul_Sensor);
+
+  if (EstadoPul_Imagen == LOW) {
+    Pul_ImagenPresionado();  
+  } 
+
+  if (EstadoPul_Sensor == LOW) {
+    EnviarNotificacion();  
+  } 
+
+
   delay(10000);
 }
